@@ -7,8 +7,8 @@ import { ApiFeatures } from "../../utils/apiFeatures.js";
 
 export const addProduct = errorHandling(async (req, res, next) => {
     req.body.slug = slugify(req.body.title)
-    req.body.imgCover = req.files.imgCover[0].filename
-    req.body.images = req.files.images.map((element) => element.filename)
+    req.body.imgCover = req.files?.imgCover[0].filename
+    req.body.images = req.files?.images.map((element) => element.filename)
     let newProduct = new Product(req.body)
     await newProduct.save()
     res.status(201).json({ message: "Product added successfully!", newProduct })
