@@ -1,14 +1,14 @@
 {
   "name": "e-commerce-project",
   "version": "1.0.0",
-  "description": "",
+  "description": "A full-stack e-commerce REST API with products, categories, carts, orders, wishlists, coupons, reviews, and Stripe checkout.",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["express", "mongoose", "stripe", "rest-api", "nodejs"],
+  "author": "Ahmed A. Eid",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",

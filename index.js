@@ -7,6 +7,7 @@ import { bootstrap } from './bootstrap.js';
 import { globalError } from './src/middleware/globalError.js';
 import { AppError } from './src/utils/AppError.js';
 import dotenv from 'dotenv'
+dotenv.config()
 import cors from 'cors'
 import { errorHandling } from './src/middleware/errorHandling.js';
 import Stripe from 'stripe';
@@ -14,14 +15,13 @@ import { Cart } from './src/database/models/cart.model.js';
 import { Order } from './src/database/models/order.model.js';
 import { Product } from './src/database/models/product.model.js';
 import { User } from './src/database/models/user.model.js';
-const stripe = new Stripe('sk_test_51PsExQ02VAOtDixEYWwOVXt04niNt1c4Cy3R1Si4CSm5hdO7670s5cjmmhOrUAlhUd1h0ZK0hcFYyQAtuhILHTnb00Gmx57s4T');
-dotenv.config()
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const app = express()
 const port = process.env.PORT || 3999
 
-app.post('/api/v1/webhook', express.raw({ type: 'application/json' }), errorHandling(async (req, res) => {
+app.post('/api/v1/webhook', express.raw({ type: 'application/json' }), errorHandling(async (req, res, next) => {
     const sig = req.headers['stripe-signature'].toString()
-    let event = stripe.webhooks.constructEvent(req.body, sig, "whsec_nFXM6eQg2BnxvWj5FobOAeevyzTXMMhW");
+    let event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     let checkout;
     if (event.type == 'checkout.session.completed') {
         checkout = event.data.object;
@@ -31,7 +31,7 @@ app.post('/api/v1/webhook', express.raw({ type: 'application/json' }), errorHand
         //    - get order total price
         let totalOrderPrice = cart.totalCartPriceAfterDiscount || cart.totalCartPrice
         //    - create order
-        let user = User.findOne({ email: checkout.customer_email })
+        let user = await User.findOne({ email: checkout.customer_email })
         let order = new Order({
             user: user._id,
             orderItems: cart.cartItems,
@@ -49,23 +49,10 @@ app.post('/api/v1/webhook', express.raw({ type: 'application/json' }), errorHand
                 },
             })
         })
-        Product.bulkWrite(options)
+        await Product.bulkWrite(options)
         //    - save order & clear cart
         await Cart.findByIdAndDelete(cart._id)
         await order.save()
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
     res.json({ message: 'success', checkout });
 }));
@@ -87,6 +74,3 @@ process.on('unhandledRejection', (error) => {
 })
 app.get('/', (req, res) => res.send('E-Commerce Final Project'))
 app.listen(port, () => console.log(`E-Commerce Project running on port ${port}!`))
-
-
-

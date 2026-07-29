@@ -1,5 +1,8 @@
 import { connect } from 'mongoose';
-export const dbConnection = connect('mongodb+srv://route42:route42@paradoxal-activity.41jqk.mongodb.net/E-Commerce').then(() => {
+
+const mongoUri = process.env.MONGODB_URI
+
+export const dbConnection = connect(mongoUri).then(() => {
     console.log('Connected to E-Commerce Database!');
 }).catch((error) => {
     console.log('Error connecting to E-Commerce Database:', error);
